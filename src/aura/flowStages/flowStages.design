@@ -1,0 +1,6 @@
+<design:component >
+   <design:attribute name="flowName" label="Flow Name"/> 
+   <!--    <design:attribute name="activeStage" label="Active Stage Color"/>
+     <design:attribute name="completedStage" label="Completed Stage Color"/>
+     <design:attribute name="todoStage" label="To Do Stage Color"/> -->
+</design:component>
