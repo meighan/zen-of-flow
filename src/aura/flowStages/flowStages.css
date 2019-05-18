@@ -1,0 +1,13 @@
+.THIS .slds-path__item:only-child { 
+    border-radius: 15rem;
+    color:  token(colorBrand);
+ }
+.THIS .slds-path__nav .slds-is-current {
+    background-color: token(colorBrand);
+}
+.THIS .slds-path__nav .slds-is-current + .slds-is-incomplete::before {
+    background-color: token(mainColor);
+}
+.THIS .slds-path__nav { 
+    margin-right: 0;
+}
