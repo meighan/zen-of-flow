@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <choices>
+        <name>Accept_Terms_Conditions</name>
+        <choiceText>I Accept the Terms &amp; Conditions</choiceText>
+        <dataType>Date</dataType>
+        <value>
+            <elementReference>$Flow.CurrentDate</elementReference>
+        </value>
+    </choices>
+    <choices>
+        <name>Decline_Terms</name>
+        <choiceText>I Decline the Terms &amp; Conditions</choiceText>
+        <dataType>Date</dataType>
+    </choices>
+    <decisions>
+        <description>Checks to see if the User has accepted the current Terms &amp; Conditions, if so, they avoid having to accept and can login, if they have not accepted the current Ts&amp;Cs they will be directed to the screen to accept them.</description>
+        <name>Ts_Cs_Accepted</name>
+        <label>Ts&amp;Cs Accepted?</label>
+        <locationX>495</locationX>
+        <locationY>62</locationY>
+        <defaultConnectorLabel>Error</defaultConnectorLabel>
+        <rules>
+            <name>Yes_Already_Accepted</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>SignedTAndC</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <label>Yes Already Accepted</label>
+        </rules>
+        <rules>
+            <name>User_Has_Not_Yet_Accepted</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>SignedTAndC</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Terms_Conditions</targetReference>
+            </connector>
+            <label>User Has Not Yet Accepted</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Were_Terms_Accepted</name>
+        <label>Were Terms Accepted?</label>
+        <locationX>713</locationX>
+        <locationY>288</locationY>
+        <defaultConnector>
+            <targetReference>Terms_Conditions</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>[Default Outcome]</defaultConnectorLabel>
+        <rules>
+            <name>Terms_Accepted</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Accept_Terms_Conditions</leftValueReference>
+                <operator>WasSelected</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>RC_Create_Legal_Doc_Signed_Record</targetReference>
+            </connector>
+            <label>Terms Accepted</label>
+        </rules>
+    </decisions>
+    <description>Login for that checks if the user has accepted the current Terms and Conditions, if so, they are logged in, if not, they need to accept to login, which sets the Ts&amp;Cs accepted date on the user.</description>
+    <formulas>
+        <name>CurrentUserId</name>
+        <dataType>String</dataType>
+        <expression>{!$User.Id}</expression>
+    </formulas>
+    <formulas>
+        <name>Terms_and_Conditions_URL</name>
+        <dataType>String</dataType>
+        <expression>{!$Label.Terms_and_Conditions_URL}</expression>
+    </formulas>
+    <interviewLabel>Login: Accept Ts &amp; Cs {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Login Flow: Accept Terms and Conditions SIMPLE</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>Flow</processType>
+    <recordCreates>
+        <name>RC_Create_Legal_Doc_Signed_Record</name>
+        <label>RC: Create Legal Doc Signed Record</label>
+        <locationX>1035</locationX>
+        <locationY>300</locationY>
+        <assignRecordIdToReference>DocSignedID</assignRecordIdToReference>
+        <inputAssignments>
+            <field>Date_Signed__c</field>
+            <value>
+                <elementReference>$Flow.CurrentDate</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Document__c</field>
+            <value>
+                <elementReference>TermsAndConditions.Id</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>User__c</field>
+            <value>
+                <elementReference>CurrentUserId</elementReference>
+            </value>
+        </inputAssignments>
+        <object>Legal_Document_Agreement__c</object>
+    </recordCreates>
+    <recordLookups>
+        <name>FL_T_C_Record</name>
+        <label>FL: T&amp;C Record</label>
+        <locationX>179</locationX>
+        <locationY>56</locationY>
+        <assignNullValuesIfNoRecordsFound>true</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Lookup_This_User_s_Signed_T_Cs</targetReference>
+        </connector>
+        <filters>
+            <field>IsActive__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <booleanValue>true</booleanValue>
+            </value>
+        </filters>
+        <filters>
+            <field>Type__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Terms and Conditions</stringValue>
+            </value>
+        </filters>
+        <object>Legal_Document__c</object>
+        <outputReference>TermsAndConditions</outputReference>
+        <queriedFields>Terms__c</queriedFields>
+        <queriedFields>Id</queriedFields>
+        <queriedFields>Terms_Active_Date__c</queriedFields>
+        <queriedFields>Name</queriedFields>
+        <queriedFields>Version__c</queriedFields>
+        <sortField>Terms_Active_Date__c</sortField>
+        <sortOrder>Desc</sortOrder>
+    </recordLookups>
+    <recordLookups>
+        <name>Lookup_This_User_s_Signed_T_Cs</name>
+        <label>Lookup This User&apos;s Signed T&amp;Cs</label>
+        <locationX>319</locationX>
+        <locationY>57</locationY>
+        <assignNullValuesIfNoRecordsFound>true</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Ts_Cs_Accepted</targetReference>
+        </connector>
+        <filters>
+            <field>Document__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>TermsAndConditions.Id</elementReference>
+            </value>
+        </filters>
+        <filters>
+            <field>User__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>CurrentUserId</elementReference>
+            </value>
+        </filters>
+        <object>Legal_Document_Agreement__c</object>
+        <outputReference>SignedTAndC</outputReference>
+        <queriedFields>Id</queriedFields>
+        <queriedFields>User__c</queriedFields>
+        <queriedFields>Document__c</queriedFields>
+    </recordLookups>
+    <screens>
+        <name>Terms_Conditions</name>
+        <label>Terms &amp; Conditions</label>
+        <locationX>464</locationX>
+        <locationY>309</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <connector>
+            <targetReference>Were_Terms_Accepted</targetReference>
+        </connector>
+        <fields>
+            <name>FirstTimeTermsAndConditions</name>
+            <fieldText>&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;_sans&quot; STYLE=&quot;font-size:14px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;1&quot;&gt;To enter the community you must agree to the Terms &amp;amp; Conditions.&lt;/FONT&gt;&lt;/DIV&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <fields>
+            <name>TsAndCs</name>
+            <fieldText>&lt;DIV ALIGN=&quot;CENTER&quot;&gt;&lt;FONT FACE=&quot;_sans&quot; STYLE=&quot;font-size:16px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;1&quot;&gt;&lt;B&gt;Terms and Conditions&lt;/B&gt;&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;CENTER&quot;&gt;&lt;FONT FACE=&quot;_sans&quot; STYLE=&quot;font-size:10px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;1&quot;&gt;{!TermsAndConditions.Version__c} - {!TermsAndConditions.Terms_Active_Date__c}&lt;FONT STYLE=&quot;font-size:14px&quot;&gt;&lt;/FONT&gt;&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;_sans&quot; STYLE=&quot;font-size:14px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;1&quot;&gt;&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;_sans&quot; STYLE=&quot;font-size:14px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;1&quot;&gt;{!TermsAndConditions.Terms__c}&lt;/FONT&gt;&lt;/DIV&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <fields>
+            <name>DoYouAccept</name>
+            <fieldText>&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;_sans&quot; STYLE=&quot;font-size:14px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;To enter the community you must accept to the Terms &amp;amp; Conditions.&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;_sans&quot; STYLE=&quot;font-size:14px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;_sans&quot; STYLE=&quot;font-size:14px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;Do you accept the &lt;A HREF=&quot;{!Terms_and_Conditions_URL}&quot; TARGET=&quot;_blank&quot;&gt;Terms &amp;amp; Conditions&lt;/A&gt;?&lt;/FONT&gt;&lt;/DIV&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <fields>
+            <name>AcceptTsAndCs</name>
+            <choiceReferences>Accept_Terms_Conditions</choiceReferences>
+            <choiceReferences>Decline_Terms</choiceReferences>
+            <dataType>Date</dataType>
+            <fieldType>RadioButtons</fieldType>
+            <isRequired>true</isRequired>
+        </fields>
+        <showFooter>true</showFooter>
+        <showHeader>false</showHeader>
+    </screens>
+    <startElementReference>FL_T_C_Record</startElementReference>
+    <status>Active</status>
+    <textTemplates>
+        <name>ErrorEmailBody</name>
+        <text>&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;Arial&quot; STYLE=&quot;font-size:12px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;Hello,&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;Arial&quot; STYLE=&quot;font-size:12px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;Arial&quot; STYLE=&quot;font-size:12px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;There has been an error in the Loginn Flow: Accept Terms &amp;amp; Conditions.&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;Arial&quot; STYLE=&quot;font-size:12px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;Arial&quot; STYLE=&quot;font-size:12px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;Fault Message: {!$Flow.FaultMessage}&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;Arial&quot; STYLE=&quot;font-size:12px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;Current Record: {!$Flow.CurrentRecord}&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;Arial&quot; STYLE=&quot;font-size:12px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;Current Date/Time: {!$Flow.CurrentDateTime}&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;Arial&quot; STYLE=&quot;font-size:12px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;User:&lt;A HREF=&quot;http://login.salesforce.com/{!thisUser.Id}&quot; TARGET=&quot;_blank&quot;&gt; {!thisUser.Name}&lt;/A&gt; (&lt;FONT KERNING=&quot;1&quot;&gt;{!thisUser.Id})&lt;/FONT&gt;&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;Arial&quot; STYLE=&quot;font-size:12px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;Flow Internview FUID: {!$Flow.InterviewGuid}&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;Arial&quot; STYLE=&quot;font-size:12px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;Flow Stage: {!$Flow.CurrentStage}&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;Arial&quot; STYLE=&quot;font-size:12px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;Terms &amp;amp; Conditions:&lt;A HREF=&quot;http://login.salesforce.com/{!TermsAndConditions.Id}&quot; TARGET=&quot;_blank&quot;&gt; {!TermsAndConditions.Name}&lt;/A&gt; &lt;FONT KERNING=&quot;1&quot;&gt;({!TermsAndConditions.Id})&lt;/FONT&gt;&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;Arial&quot; STYLE=&quot;font-size:12px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;1&quot;&gt;&lt;/FONT&gt;&lt;/DIV&gt;&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;Arial&quot; STYLE=&quot;font-size:12px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;1&quot;&gt;Check it out in Salesforce&lt;/FONT&gt;&lt;/DIV&gt;</text>
+    </textTemplates>
+    <textTemplates>
+        <name>ErrorInstructionsText</name>
+        <text>&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;_sans&quot; STYLE=&quot;font-size:14px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;You &lt;B&gt;must&lt;/B&gt; accept the Terms and Conditions to enter.&lt;/FONT&gt;&lt;/DIV&gt;</text>
+    </textTemplates>
+    <textTemplates>
+        <name>FirstTsAndCsText</name>
+        <text>&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;_sans&quot; STYLE=&quot;font-size:14px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;To enter the community you must agree to the Terms &amp;amp; Conditions.&lt;/FONT&gt;&lt;/DIV&gt;</text>
+    </textTemplates>
+    <textTemplates>
+        <name>UpdatedTsAndCsText</name>
+        <text>&lt;DIV ALIGN=&quot;LEFT&quot;&gt;&lt;FONT FACE=&quot;_sans&quot; STYLE=&quot;font-size:14px&quot; COLOR=&quot;#000000&quot; LETTERSPACING=&quot;0&quot; KERNING=&quot;0&quot;&gt;We have recently updated our Terms and Conditions.  To enter the Community, please review and agree to the terms below.&lt;/FONT&gt;&lt;/DIV&gt;</text>
+    </textTemplates>
+    <variables>
+        <name>DocSignedID</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+    </variables>
+    <variables>
+        <name>InstructionsText</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+    </variables>
+    <variables>
+        <name>SignedTAndC</name>
+        <dataType>SObject</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+        <objectType>Legal_Document_Agreement__c</objectType>
+    </variables>
+    <variables>
+        <name>TermsAndConditions</name>
+        <dataType>SObject</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+        <objectType>Legal_Document__c</objectType>
+    </variables>
+    <variables>
+        <name>thisUser</name>
+        <dataType>SObject</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>true</isOutput>
+        <objectType>User</objectType>
+    </variables>
+</Flow>

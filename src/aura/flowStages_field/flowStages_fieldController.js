@@ -2,11 +2,14 @@
    init : function(component, event, helper) {
       var progressIndicator = component.find('progressIndicator');
       for (let step of component.get('v.stages')) {
+         var label = step.split(":").pop();
+         // convert step name to label (remove prefix, change _ to space)
+         label = label.split('_').join(' ');
          $A.createComponent(
             "lightning:progressStep",
             {
                "aura:id": "step_" + step,
-               "label": step,
+               "label": label,
                "value": step
              },
              function(newProgressStep, status, errorMessage){
