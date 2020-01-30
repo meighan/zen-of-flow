@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <name>Show_success_message</name>
+        <label>Show success message</label>
+        <locationX>56</locationX>
+        <locationY>413</locationY>
+        <actionName>c:showToast</actionName>
+        <actionType>component</actionType>
+        <inputParameters>
+            <name>message</name>
+            <value>
+                <stringValue>Thank you for your submission.  Please review your emails for a reminder notification!</stringValue>
+            </value>
+        </inputParameters>
+    </actionCalls>
+    <description>Flow that will live in community page that will be used to send username email reminder.</description>
+    <interviewLabel>Check your email!</interviewLabel>
+    <label>Forgot Username Community Reminder</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>Flow</processType>
+    <recordCreates>
+        <description>Creates platform event request submitted by Guest User.</description>
+        <name>Create_Community_User_Name_Reminder_Platform_Event</name>
+        <label>Create Community User Name Reminder Platform Event</label>
+        <locationX>54</locationX>
+        <locationY>285</locationY>
+        <connector>
+            <targetReference>Show_success_message</targetReference>
+        </connector>
+        <inputAssignments>
+            <field>Email_Address__c</field>
+            <value>
+                <elementReference>sovarUser.Email</elementReference>
+            </value>
+        </inputAssignments>
+        <object>Email__e</object>
+    </recordCreates>
+    <screens>
+        <description>Initial screen to capture email.  Used to find username.</description>
+        <name>Forgot_Username_Screen</name>
+        <label>Forgot Username Screen</label>
+        <locationX>53</locationX>
+        <locationY>156</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>true</allowPause>
+        <connector>
+            <targetReference>Create_Community_User_Name_Reminder_Platform_Event</targetReference>
+        </connector>
+        <fields>
+            <name>Email</name>
+            <extensionName>flowruntime:email</extensionName>
+            <fieldType>ComponentInstance</fieldType>
+            <inputParameters>
+                <name>required</name>
+                <value>
+                    <booleanValue>true</booleanValue>
+                </value>
+            </inputParameters>
+            <isRequired>true</isRequired>
+            <outputParameters>
+                <assignToReference>sovarUser.Email</assignToReference>
+                <name>value</name>
+            </outputParameters>
+        </fields>
+        <pausedText>&lt;p&gt;Please review your email for the reminder.&lt;/p&gt;</pausedText>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+    <startElementReference>Forgot_Username_Screen</startElementReference>
+    <status>Active</status>
+    <variables>
+        <description>sobject used to capture email and to pass to subflow to find matching user.</description>
+        <name>sovarUser</name>
+        <dataType>SObject</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+        <objectType>User</objectType>
+    </variables>
+</Flow>
